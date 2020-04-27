@@ -12,17 +12,7 @@ app.use(express.static('build'));
 morgan.token('body', function (req, res) { return JSON.stringify(req.body) });
 app.use(morgan(':method :url :status :response-time ms - :res[content-length] :body'));
 
-//Error handler middleware
-const errorHandler = (err, req, res, next) =>{
-    console.log(err.message);
 
-    if(err.name === 'CastError'){
-        return res.status(400).send({error: 'Incorrect id format'})
-    }
-
-    next(err)
-};
-app.use(errorHandler);
 
 
 //-----------------------Routes-----------------------
@@ -54,7 +44,6 @@ app.get('/info', (req, res) => {
     Person.estimatedDocumentCount({ type: 'jungle' }, function (err, count) {
         res.send(`<p>Phonebook has info about ${count} people <p> ${date}`)
     });
-
 });
 
 
@@ -69,14 +58,14 @@ app.delete('/api/persons/:id', (req, res, next) =>{
 
 
 //POST new person
-app.post('/api/persons', (req, res) => {
+app.post('/api/persons', (req, res, next) => {
     const body = req.body;
 
-    if(body.number === undefined|| body.name === undefined){
-        return res.status(400).json({
-            error: 'request is missing number/name'
-        })
-    }
+    // if(body.number === undefined|| body.name === undefined){
+    //     return res.status(400).json({
+    //         error: 'request is missing number/name'
+    //     })
+    // }
 
     // if(persons.find(p => p.name === body.name)){
     //     return res.status(400).json({
@@ -90,10 +79,11 @@ app.post('/api/persons', (req, res) => {
         number: body.number,
     });
 
-    person.save().then(savedPerson => {
-        res.json(savedPerson.toJSON())
-    })
-
+    person
+        .save()
+        .then(savedPerson => savedPerson.toJSON())
+        .then(savedAndFormatted => {res.json(savedAndFormatted)})
+        .catch(err => next(err))
 });
 
 //Update person
@@ -114,6 +104,21 @@ app.put('/api/persons/:id', (req, res, next) =>{
         })
         .catch(err => next(err))
 });
+
+//Error handler middleware
+const errorHandler = (err, req, res, next) =>{
+    console.log(err.message);
+
+    if(err.name === 'CastError'){
+        return res.status(400).send({error: 'Incorrect id format'})
+    } else if (err.name === 'ValidationError'){
+        return res.status(400).json({error: err.message})
+    }
+
+    next(err)
+};
+app.use(errorHandler);
+
 
 
 const PORT = process.env.PORT || 3001;
@@ -141,5 +146,12 @@ app.listen(PORT, () => {
 * 3.11 - DONE
 * 3.12 - DONE
 * 3.13 - DONE
-* 3.14
+* 3.14 - DONE
+* 3.15 - DONE
+* 3.16 - DONE
+* 3.17 - DONE
+* 3.18 - DONE
+* 3.19 - DONE
+* 3.20 - DONE
+* 3.21 - DONE
 * */
